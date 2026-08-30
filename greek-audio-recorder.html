@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greek Sound Bank</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root{
+    --ink:#16233a;
+    --marble:#f4f1e8;
+    --marble-dim:#e8e3d3;
+    --aegean:#1b4d6b;
+    --aegean-deep:#0f3550;
+    --ochre:#c08a2e;
+    --terracotta:#a8461f;
+    --line:#c9c2a8;
+    --done:#3f6b4a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--marble);
+    color:var(--ink);
+    font-family:Georgia,'Palatino Linotype',serif;
+    padding-bottom:100px;
+  }
+  .meander{
+    height:14px;
+    width:100%;
+    background:
+      repeating-linear-gradient(90deg,
+        var(--aegean-deep) 0 4px,
+        transparent 4px 8px);
+    opacity:0;
+  }
+  svg.key-row{display:block;width:100%;height:16px;}
+  header{
+    background:var(--aegean-deep);
+    color:var(--marble);
+    padding:28px 20px 20px;
+    text-align:center;
+  }
+  header h1{
+    margin:0 0 6px;
+    font-size:1.7rem;
+    letter-spacing:0.04em;
+    font-weight:400;
+  }
+  header p{
+    margin:0;
+    font-family:'Courier New',monospace;
+    font-size:0.78rem;
+    letter-spacing:0.08em;
+    color:var(--ochre);
+    text-transform:uppercase;
+  }
+  .progress-wrap{
+    max-width:640px;
+    margin:18px auto 0;
+    padding:0 20px;
+  }
+  .progress-track{
+    height:8px;
+    background:var(--marble-dim);
+    border:1px solid var(--line);
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--ochre);
+    transition:width 0.3s ease;
+  }
+  .progress-label{
+    font-family:'Courier New',monospace;
+    font-size:0.75rem;
+    color:var(--aegean-deep);
+    margin-top:6px;
+    display:flex;
+    justify-content:space-between;
+  }
+  .toolbar{
+    max-width:640px;
+    margin:16px auto 0;
+    padding:0 20px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  button.main-btn{
+    font-family:'Courier New',monospace;
+    font-size:0.8rem;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    padding:10px 16px;
+    border:1px solid var(--aegean-deep);
+    background:var(--marble);
+    color:var(--aegean-deep);
+    cursor:pointer;
+  }
+  button.main-btn.primary{
+    background:var(--aegean-deep);
+    color:var(--marble);
+  }
+  button.main-btn:disabled{
+    opacity:0.4;
+    cursor:not-allowed;
+  }
+  section.groups{
+    max-width:640px;
+    margin:24px auto;
+    padding:0 20px;
+  }
+  .group-title{
+    font-family:'Courier New',monospace;
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--terracotta);
+    border-bottom:1px solid var(--line);
+    padding-bottom:6px;
+    margin:26px 0 10px;
+  }
+  .item{
+    display:grid;
+    grid-template-columns:56px 1fr auto;
+    align-items:center;
+    gap:12px;
+    padding:10px 6px;
+    border-bottom:1px solid var(--marble-dim);
+  }
+  .glyph{
+    font-size:1.5rem;
+    text-align:center;
+  }
+  .item-name{
+    font-family:'Courier New',monospace;
+    font-size:0.85rem;
+    color:var(--ink);
+  }
+  .item-name small{
+    display:block;
+    color:#7a7460;
+    font-size:0.7rem;
+    margin-top:2px;
+  }
+  .item-actions{
+    display:flex;
+    gap:6px;
+    align-items:center;
+  }
+  .dot{
+    width:9px;height:9px;border-radius:50%;
+    background:var(--line);
+    flex-shrink:0;
+  }
+  .dot.done{background:var(--done);}
+  .icon-btn{
+    font-family:'Courier New',monospace;
+    font-size:0.72rem;
+    padding:7px 10px;
+    border:1px solid var(--line);
+    background:#fff;
+    cursor:pointer;
+    color:var(--ink);
+  }
+  .icon-btn.recording{
+    background:var(--terracotta);
+    color:#fff;
+    border-color:var(--terracotta);
+  }
+  .icon-btn.play{border-color:var(--aegean);color:var(--aegean);}
+  input[type=file]{display:none;}
+  footer.status{
+    position:fixed;
+    bottom:0;left:0;right:0;
+    background:var(--aegean-deep);
+    color:var(--marble);
+    font-family:'Courier New',monospace;
+    font-size:0.75rem;
+    padding:10px 16px;
+    text-align:center;
+    letter-spacing:0.03em;
+  }
+  .note{
+    max-width:640px;
+    margin:0 auto;
+    padding:0 20px;
+    font-size:0.85rem;
+    color:#5a5540;
+    line-height:1.5;
+  }
+</style>
+</head>
+<body>
+
+<svg class="key-row" viewBox="0 0 400 16" preserveAspectRatio="none">
+  <rect width="400" height="16" fill="#f4f1e8"/>
+  <path d="M0,0 h16 v8 h8 v-8 h16 v16 h-16 v-8 h-8 v8 h-16 z" fill="#0f3550" transform="scale(10,1)"/>
+</svg>
+
+<header>
+  <h1>Greek Sound Bank</h1>
+  <p>Record &middot; Label &middot; Export</p>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <div class="progress-label"><span id="progressText">0 / 0 recorded</span><span id="progressPct">0%</span></div>
+</div>
+
+<div class="toolbar">
+  <button class="main-btn primary" id="exportBtn" disabled>Export All (.zip)</button>
+  <button class="main-btn" id="clearBtn" disabled>Clear All</button>
+</div>
+
+<p class="note">Tap <b>Rec</b> to record with your mic, or <b>Upload</b> to add an existing sound file. Each clip is saved automatically and exported with its Greek spelling as the filename (e.g. <code>βα.webm</code>, <code>μπο.webm</code>). Includes letters, digraphs, every consonant+vowel syllable, and every digraph consonant+vowel syllable (200 combinations total). Come back anytime — your progress is kept.</p>
+
+<section class="groups" id="groups"></section>
+
+<footer class="status" id="statusBar">Ready.</footer>
+
+<script>
+const LETTERS = [
+  ["Α α","α","alpha","a"],["Β β","β","beta","v"],["Γ γ","γ","gamma","gh / y"],["Δ δ","δ","delta","th (this)"],
+  ["Ε ε","ε","epsilon","e"],["Ζ ζ","ζ","zeta","z"],["Η η","η","eta","i"],["Θ θ","θ","theta","th (thin)"],
+  ["Ι ι","ι","iota","i"],["Κ κ","κ","kappa","k"],["Λ λ","λ","lambda","l"],["Μ μ","μ","mu","m"],
+  ["Ν ν","ν","nu","n"],["Ξ ξ","ξ","xi","ks"],["Ο ο","ο","omicron","o"],["Π π","π","pi","p"],
+  ["Ρ ρ","ρ","rho","r"],["Σ σ/ς","σ","sigma","s"],["Τ τ","τ","tau","t"],["Υ υ","υ","upsilon","i"],
+  ["Φ φ","φ","phi","f"],["Χ χ","χ","chi","kh"],["Ψ ψ","ψ","psi","ps"],["Ω ω","ω","omega","o"]
+];
+const COMBOS = [
+  ["αι","alpha-iota","e"],["ει","epsilon-iota","i"],["οι","omicron-iota","i"],
+  ["ου","omicron-upsilon","u"],["υι","upsilon-iota","i"],
+  ["αυ","alpha-upsilon","av / af"],["ευ","epsilon-upsilon","ev / ef"],
+  ["μπ","mu-pi","b / mb"],["ντ","nu-tau","d / nd"],["γκ","gamma-kappa","g / ng"],
+  ["γγ","gamma-gamma","ng"],["τσ","tau-sigma","ts"],["τζ","tau-zeta","dz"],
+  ["γχ","gamma-chi","nch"],["γξ","gamma-xi","nks"]
+];
+// Consonants and vowels used to generate every consonant+vowel syllable (βα, βε, βι...)
+const CONSONANTS = [
+  ["β","beta","v"],["γ","gamma","gh/y"],["δ","delta","th(this)"],["ζ","zeta","z"],
+  ["θ","theta","th(thin)"],["κ","kappa","k"],["λ","lambda","l"],["μ","mu","m"],
+  ["ν","nu","n"],["ξ","xi","ks"],["π","pi","p"],["ρ","rho","r"],["σ","sigma","s"],
+  ["τ","tau","t"],["φ","phi","f"],["χ","chi","kh"],["ψ","psi","ps"]
+];
+const VOWELS = [
+  ["α","alpha","a"],["ε","epsilon","e"],["η","eta","i"],["ι","iota","i"],
+  ["ο","omicron","o"],["υ","upsilon","i"],["ω","omega","o"]
+];
+const SYLLABLES = [];
+for(const [cg,cn,cipa] of CONSONANTS){
+  for(const [vg,vn,vipa] of VOWELS){
+    SYLLABLES.push([cg+vg, cn+"-"+vn, cipa+vipa]);
+  }
+}
+
+// Digraph consonants (διψήφια σύμφωνα) combined with each vowel: μπα, ντο, τσι, τζου...
+const DIGRAPH_CONSONANTS = [
+  ["μπ","mp","b"],["ντ","nt","d"],["γκ","gk","g"],
+  ["γγ","gg","ng"],["τσ","ts","ts"],["τζ","tz","dz"]
+];
+const DIGRAPH_SYLLABLES = [];
+for(const [cg,cn,cipa] of DIGRAPH_CONSONANTS){
+  for(const [vg,vn,vipa] of VOWELS){
+    DIGRAPH_SYLLABLES.push([cg+vg, cn+"-"+vn, cipa+vipa]);
+  }
+}
+
+const items = [
+  ...LETTERS.map(([disp,g,n,ipa])=>({id:n, greek:g, fileGreek:g, name:n, ipa, group:"Letters"})),
+  ...COMBOS.map(([g,n,ipa])=>({id:n, greek:g, fileGreek:g, name:n, ipa, group:"Combinations"})),
+  ...SYLLABLES.map(([g,n,ipa])=>({id:n, greek:g, fileGreek:g, name:n, ipa, group:"Consonant + Vowel"})),
+  ...DIGRAPH_SYLLABLES.map(([g,n,ipa])=>({id:n, greek:g, fileGreek:g, name:n, ipa, group:"Digraph Consonant + Vowel"}))
+];
+
+let recordedData = {}; // id -> {dataUrl, mime, ext}
+let mediaRecorder = null, activeChunks = [], activeId = null, activeStream = null;
+
+const statusBar = document.getElementById('statusBar');
+function setStatus(msg){ statusBar.textContent = msg; }
+
+function extFromMime(mime){
+  if(mime.includes('webm')) return 'webm';
+  if(mime.includes('ogg')) return 'ogg';
+  if(mime.includes('mp4')) return 'm4a';
+  if(mime.includes('mpeg')) return 'mp3';
+  if(mime.includes('wav')) return 'wav';
+  return 'audio';
+}
+
+async function loadAll(){
+  setStatus('Loading saved recordings…');
+  for(const it of items){
+    try{
+      const res = await window.storage.get('rec:'+it.id, false);
+      if(res && res.value){
+        recordedData[it.id] = JSON.parse(res.value);
+      }
+    }catch(e){ /* not found, ignore */ }
+  }
+  render();
+  setStatus('Ready.');
+}
+
+async function saveRecording(id, dataUrl, mime){
+  const ext = extFromMime(mime);
+  recordedData[id] = {dataUrl, mime, ext};
+  try{
+    await window.storage.set('rec:'+id, JSON.stringify(recordedData[id]), false);
+  }catch(e){
+    setStatus('Could not save — storage error.');
+    return;
+  }
+  render();
+}
+
+async function deleteRecording(id){
+  delete recordedData[id];
+  try{ await window.storage.delete('rec:'+id, false); }catch(e){}
+  render();
+}
+
+function updateProgress(){
+  const total = items.length;
+  const done = Object.keys(recordedData).length;
+  document.getElementById('progressText').textContent = `${done} / ${total} recorded`;
+  document.getElementById('progressPct').textContent = Math.round(done/total*100)+'%';
+  document.getElementById('progressFill').style.width = (done/total*100)+'%';
+  document.getElementById('exportBtn').disabled = done===0;
+  document.getElementById('clearBtn').disabled = done===0;
+}
+
+function render(){
+  const container = document.getElementById('groups');
+  container.innerHTML = '';
+  const groups = [...new Set(items.map(i=>i.group))];
+  for(const g of groups){
+    const title = document.createElement('div');
+    title.className = 'group-title';
+    title.textContent = g;
+    container.appendChild(title);
+    for(const it of items.filter(i=>i.group===g)){
+      const row = document.createElement('div');
+      row.className = 'item';
+      const done = !!recordedData[it.id];
+      row.innerHTML = `
+        <div class="glyph">${it.greek}</div>
+        <div class="item-name">${it.name}<small>${it.ipa}</small></div>
+        <div class="item-actions">
+          <span class="dot ${done?'done':''}"></span>
+          ${done?`<button class="icon-btn play" data-play="${it.id}">▶ Play</button>
+                  <button class="icon-btn" data-del="${it.id}">Delete</button>`:''}
+          <button class="icon-btn" data-rec="${it.id}">${done?'Re-rec':'Rec'}</button>
+          <label class="icon-btn" style="margin:0;display:inline-block;">Upload
+            <input type="file" accept="audio/*" data-upload="${it.id}">
+          </label>
+        </div>
+      `;
+      container.appendChild(row);
+    }
+  }
+  updateProgress();
+
+  container.querySelectorAll('[data-rec]').forEach(btn=>{
+    btn.addEventListener('click', ()=>toggleRecord(btn.dataset.rec, btn));
+  });
+  container.querySelectorAll('[data-upload]').forEach(inp=>{
+    inp.addEventListener('change', (e)=>handleUpload(inp.dataset.upload, e));
+  });
+  container.querySelectorAll('[data-play]').forEach(btn=>{
+    btn.addEventListener('click', ()=>playRecording(btn.dataset.play));
+  });
+  container.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', ()=>deleteRecording(btn.dataset.del));
+  });
+}
+
+async function toggleRecord(id, btn){
+  if(mediaRecorder && mediaRecorder.state === 'recording' && activeId === id){
+    mediaRecorder.stop();
+    return;
+  }
+  if(mediaRecorder && mediaRecorder.state === 'recording'){
+    return; // already recording something else
+  }
+  try{
+    activeStream = await navigator.mediaDevices.getUserMedia({audio:true});
+  }catch(e){
+    setStatus('Microphone access denied or unavailable.');
+    return;
+  }
+  activeChunks = [];
+  activeId = id;
+  mediaRecorder = new MediaRecorder(activeStream);
+  mediaRecorder.ondataavailable = (e)=>{ if(e.data.size>0) activeChunks.push(e.data); };
+  mediaRecorder.onstop = async ()=>{
+    const mime = mediaRecorder.mimeType || 'audio/webm';
+    const blob = new Blob(activeChunks, {type:mime});
+    const reader = new FileReader();
+    reader.onload = ()=> saveRecording(id, reader.result, mime);
+    reader.readAsDataURL(blob);
+    activeStream.getTracks().forEach(t=>t.stop());
+    btn.textContent = 'Rec';
+    btn.classList.remove('recording');
+    setStatus('Saved: '+id);
+  };
+  mediaRecorder.start();
+  btn.textContent = '■ Stop';
+  btn.classList.add('recording');
+  setStatus('Recording '+id+'…');
+}
+
+function handleUpload(id, e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=> saveRecording(id, reader.result, file.type || 'audio/mpeg');
+  reader.readAsDataURL(file);
+}
+
+function playRecording(id){
+  const rec = recordedData[id];
+  if(!rec) return;
+  const audio = new Audio(rec.dataUrl);
+  audio.play();
+}
+
+document.getElementById('exportBtn').addEventListener('click', async ()=>{
+  setStatus('Building zip…');
+  const zip = new JSZip();
+  const usedNames = {};
+  for(const [id, rec] of Object.entries(recordedData)){
+    const item = items.find(i=>i.id===id);
+    let baseName = item ? item.fileGreek : id;
+    // avoid collisions (e.g. duplicate greek strings) by suffixing a counter
+    if(usedNames[baseName] !== undefined){
+      usedNames[baseName]++;
+      baseName = `${baseName}-${usedNames[baseName]}`;
+    } else {
+      usedNames[baseName] = 0;
+    }
+    const base64 = rec.dataUrl.split(',')[1];
+    zip.file(`${baseName}.${rec.ext}`, base64, {base64:true});
+  }
+  const blob = await zip.generateAsync({type:'blob'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'greek-sound-bank.zip';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  setStatus('Exported greek-sound-bank.zip');
+});
+
+document.getElementById('clearBtn').addEventListener('click', async ()=>{
+  if(!confirm('Delete all saved recordings? This cannot be undone.')) return;
+  for(const id of Object.keys(recordedData)){
+    try{ await window.storage.delete('rec:'+id, false); }catch(e){}
+  }
+  recordedData = {};
+  render();
+  setStatus('Cleared all recordings.');
+});
+
+loadAll();
+</script>
+</body>
+</html>
